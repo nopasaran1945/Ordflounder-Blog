@@ -1,0 +1,40 @@
+# .github/workflows/hugo-deploy.yml
+
+name: Deploy Hugo Site to Pages
+
+on:
+  push:
+    branches:
+      - main  # 当 main 分支有 push 时触发
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true  # 拉取主题 submodule
+
+      - name: Setup Hugo
+        uses: peaceiris/actions-hugo@v3
+        with:
+          hugo-version: 'latest'
+          extended: true
+
+      - name: Build
+        run: hugo --minify # --minify 会压缩生成的 HTML/CSS/JS 文件
+
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          # 这个 secret 就是我们前面在源仓库配置的私钥
+          deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+          # 目标仓库，替换成你自己的
+          external_repository: nopasaran1945/ordflounder.github.io
+          # 部署到 main 分支
+          publish_branch: main
+          # Hugo 生成的静态文件默认在 public 目录
+          publish_dir: ./public
+          # 提交信息
+          commit_message: ${{ github.event.head_commit.message }}
